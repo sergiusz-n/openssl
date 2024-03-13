@@ -239,8 +239,14 @@ int main(int argc, char **argv)
                     }
                     /* Show received message */
                     printf("Received: %s", rxbuf);
+
+                    // SSL_set_fd(ssl, -1);                                /* causes EBADF */
+                    // SSL_set_fd(ssl, socket(PF_INET, SOCK_STREAM, 0));   /* causes EPIPE */
+                    // SSL_set_fd(ssl, socket(PF_INET, SOCK_DGRAM, 0));    /* causes EDESTADDRREQ */
                     /* Echo it back */
                     if (SSL_write(ssl, rxbuf, rxlen) <= 0) {
+                        printf("SSL_write failed, SSL_get_error() = %d, ERR_peek_error() = 0x%.8lx, errno = %d(%s)\n",
+                            SSL_get_error(ssl, -1), ERR_peek_error(), errno, strerror(errno));
                         ERR_print_errors_fp(stderr);
                     }
                 }
